@@ -1,100 +1,203 @@
-# Health Insurance Premium Prediction
+# 🏥 Healthcare Premium Prediction
 
-An end-to-end regression pipeline that predicts annual health insurance premiums from customer demographic, financial, and health data — covering data cleaning, EDA, feature engineering, model training, and error analysis.
+A machine learning application that predicts annual healthcare insurance premiums using a **segmented modeling approach**.
 
-## Table of Contents
-- [Overview](#overview)
-- [Dataset](#dataset)
-- [Project Workflow](#project-workflow)
-- [Results](#results)
-- [Key Insight](#key-insight)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Future Work](#future-work)
+Instead of using a single model for every customer, this project divides customers into two age groups:
 
-## Overview
+- **Young customers (Under 25 years)**
+- **Adults (25 years and above)**
 
-Insurance providers need to price premiums accurately — overcharging risks losing customers, undercharging risks financial loss. This project builds a regression model to predict `annual_premium_amount` using customer attributes such as age, income, BMI category, smoking status, medical history, and insurance plan tier, then diagnoses *where* the model still gets it wrong.
+Separate machine learning models were trained for each group to improve prediction accuracy. The trained models are deployed in a **Streamlit web application**, which automatically selects the appropriate model based on the user's age.
 
-## Dataset
+---
 
-The dataset includes demographic (age, gender, region, marital status), financial (income), and health (BMI category, smoking status, medical history) attributes for insurance customers, along with their annual premium amount.
+## 🚀 Live Demo
 
-> Note: add dataset source/license here if the data isn't proprietary, or a note that it's excluded from the repo.
+🔗 **https://hanad-ml-healthcare-insurance-prediction-app.streamlit.app/**
 
-## Project Workflow
+---
 
-### 1. Data Cleaning
-- Handled missing values and duplicate records
-- Corrected invalid negative values in `number_of_dependants`
-- Removed outliers: invalid ages (>100 years), extreme income values using a domain-informed quantile threshold rather than strict IQR
-- Standardized inconsistent categorical labels (e.g., multiple variants of "non-smoker" collapsed into one category)
+# 📌 Features
 
-### 2. Exploratory Data Analysis
-- Univariate and bivariate analysis across numeric features (age, income, dependants) and categorical features (gender, region, smoking status, plan tier)
-- Cross-tabulations and heatmaps to examine relationships (e.g., income level vs. insurance plan)
+- Interactive Streamlit web application
+- Automatic age-based model selection
+- Separate preprocessing pipelines for each customer segment
+- Real-time healthcare premium prediction
+- Trained models exported with Joblib for deployment
 
-### 3. Feature Engineering
-- Engineered a `total_risk_score` from parsed medical history (diabetes, heart disease, high blood pressure, thyroid), weighted by clinical severity
-- Ordinal encoding for `insurance_plan` and `income_level`
-- One-hot encoding for nominal categorical features
-- Multicollinearity check via Variance Inflation Factor (VIF); dropped high-VIF feature (`income_level`)
-- Min-max scaling applied to numeric features
+---
 
-### 4. Model Training
-- Trained and compared Linear Regression, Ridge Regression, and XGBoost
-- Hyperparameter tuning for XGBoost via `RandomizedSearchCV`
-- Evaluated using R², MSE, and RMSE
+# 🧠 Project Motivation
 
-### 5. Error Analysis
-- Analyzed residual distribution (% error per prediction)
-- Flagged "extreme errors" (>10% over/undercharge) — present in ~30% of test customers
-- Isolated severe cases (>50% error) — approximately 549 customers
-- Compared feature distributions between high-error and overall test populations
+Initial experiments using a single regression model revealed significantly higher prediction errors for younger customers.
 
-## Results
+To address this issue, the dataset was segmented into two age groups:
 
-| Model | RMSE | Test R² |
-|---|---|---|
-| Linear Regression | 2272.80 | 0.928 |
-| Ridge Regression | 2272.81 | 0.928 |
-| XGBoost (default) | 1250.23 | 0.978 |
-| XGBoost (tuned) | — | 0.981 (CV) |
+- Under 25 years
+- 25 years and above
 
-Best tuned XGBoost hyperparameters: `n_estimators=50`, `max_depth=5`, `learning_rate=0.1`
+Each segment was trained independently, allowing the models to learn patterns specific to their customer group and improve prediction performance.
 
-## Key Insight
+---
 
-Extreme prediction errors are concentrated in customers **under 25 years old**. This suggests the model underperforms for younger customers — likely due to insufficient signal or higher variance in premiums within this segment — and would benefit from a dedicated sub-model or additional engineered features targeting this group.
+# 📂 Dataset
 
-## Tech Stack
+The project uses separate datasets for each customer segment.
 
-`Python` · `pandas` · `NumPy` · `seaborn` · `matplotlib` · `scikit-learn` · `XGBoost` · `statsmodels`
+- `premiums_young.xlsx`
+- `premiums_rest.xlsx`
 
-## Project Structure
-```
-health-insurance-premium-prediction/
-├── notebooks/
-│   └── ml_premium_prediction.ipynb   # Full analysis and modeling notebook
+Each dataset contains customer demographic, financial, and health-related information used to predict annual healthcare insurance premiums.
+
+---
+
+# ⚙️ Machine Learning Pipeline
+
+## 1. Data Preparation
+
+- Data cleaning
+- Missing value handling
+- Outlier removal
+- Standardization of categorical values
+
+## 2. Data Segmentation
+
+Customers were divided into two age groups:
+
+- Young (Under 25)
+- Rest (25+)
+
+## 3. Feature Engineering
+
+- Categorical encoding
+- Numerical scaling
+- Medical risk feature engineering
+
+## 4. Model Training
+
+Final training notebooks:
+
+- `ml_premium_prediction_young_with_gr.ipynb`
+- `ml_premium_prediction_rest_with_gr.ipynb`
+
+Each notebook trains a dedicated model for its respective customer segment.
+
+## 5. Deployment
+
+The trained models and preprocessing pipelines were exported as Joblib artifacts and integrated into a Streamlit application.
+
+During prediction:
+
+1. User enters customer information.
+2. Age determines the customer segment.
+3. The corresponding scaler and model are loaded.
+4. The predicted annual premium is displayed.
+
+---
+
+# 🗂 Project Structure
+
+```text
+Healthcare_Premium_Prediction/
+│
+├── app/
+│   ├── artifacts/
+│   ├── main.py
+│   └── prediction_helper.py
+│
+├── artifacts/
+│   ├── model_young.joblib
+│   ├── model_rest.joblib
+│   ├── scaler_young.joblib
+│   └── scaler_rest.joblib
+│
+├── data_segmentation.ipynb
+├── ml_premium_prediction_young_with_gr.ipynb
+├── ml_premium_prediction_rest_with_gr.ipynb
+│
+├── premiums_young.xlsx
+├── premiums_rest.xlsx
+│
+├── requirements.txt
+├── runtime.txt
 └── README.md
 ```
 
-> Raw dataset (`premiums.xlsx`) is excluded from version control — see [Dataset](#dataset) for source details.
+---
 
-## Installation
+# 🛠 Tech Stack
+
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- XGBoost
+- Joblib
+- Streamlit
+- Matplotlib
+- Seaborn
+
+---
+
+# ▶️ Running Locally
+
+Clone the repository
 
 ```bash
-git clone https://github.com/HanadIsmail/health-insurance-premium-prediction.git
-cd health-insurance-premium-prediction
-pip install -r requirements.txt
-jupyter notebook notebooks/ml_premium_prediction.ipynb
+git clone https://github.com/HanadIsmail/Healthcare_Premium_Prediction.git
 ```
 
-## Future Work
-- Build a segmented model for customers under 25 (identified as the high-error group)
-- Build a Streamlit app for interactive premium prediction
-- Deploy the app and set up an MLOps pipeline (versioning, CI/CD, monitoring)
+Move into the project directory
 
-## License
+```bash
+cd Healthcare_Premium_Prediction
+```
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the application
+
+```bash
+streamlit run app/main.py
+```
+
+---
+
+# 💡 How the Prediction Works
+
+The deployed application follows these steps:
+
+- Collects customer information through the Streamlit interface.
+- Determines whether the customer belongs to the **Young** or **Adult** segment based on age.
+- Loads the corresponding scaler and trained model.
+- Generates the annual healthcare premium prediction instantly.
+
+---
+
+# 🚀 Future Improvements
+
+- Add SHAP model explainability
+- Confidence intervals for predictions
+- Docker containerization
+- Automated model retraining pipeline
+- Model monitoring and drift detection
+
+---
+
+# 📄 License
+
 This project is licensed under the MIT License.
+
+---
+
+## 👤 Author
+
+**Hanad Ismail**
+
+GitHub: https://github.com/HanadIsmail
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
