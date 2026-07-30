@@ -188,9 +188,9 @@ The deployed application follows these steps:
 
 ---
 
-# 📄 License
+## License
 
-This project is licensed under the MIT License.
+This project is for educational and portfolio purposes.
 
 ---
 
